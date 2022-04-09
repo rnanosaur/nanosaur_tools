@@ -54,10 +54,13 @@ class bcolors:
         return bcolors.FAIL + message + bcolors.ENDC
 
 
-def check_packages(new_version, folders):
+def check_packages(new_version, path):
     check = True
+    # Get all folders in repo
+    folders = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name)) if not name.startswith('.')]
+    # Check if is a ROS package
     for folder in folders:
-        package_manifest = os.path.join(folder, 'package.xml')
+        package_manifest = os.path.join(path, folder, 'package.xml')
         if os.path.exists(package_manifest):
             try:
                 root = ElementTree(None, package_manifest)
@@ -85,9 +88,8 @@ def main():
     new_version = parse(args.version)
     # Get all folders in repo
     path = "."
-    folders = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name)) if not name.startswith('.')]
     # Check all folders
-    check = check_packages(new_version, folders)
+    check = check_packages(new_version, path)
     # Exit status
     exit(0 if check else 1)
 
