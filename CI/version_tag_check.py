@@ -70,13 +70,26 @@ def check_packages(new_version, path):
             
             # https://packaging.pypa.io/en/latest/version.html#packaging.version.parse
             pkg_version = parse(version)
-            # Check version
-            if new_version == pkg_version:
-                print(bcolors.ok(f"[ OK ] {folder} {pkg_version}"))
-                check = check and True
-            else:
-                print(bcolors.fail(f"[ERROR] {folder} {pkg_version} != {new_version}"))
+            
+            if pkg_version.is_prerelease:
+                print(bcolors.fail(f"[ERROR] Can't be a dev version {new_version}"))
                 check = check and False
+                continue
+            # Check version
+            if new_version.is_prerelease:
+                if new_version.base_version == pkg_version.base_version:
+                    print(bcolors.warning(f"[ OK ] {folder} {pkg_version}"))
+                    check = check and True
+                else:
+                    print(bcolors.fail(f"[ERROR] {folder} {pkg_version} != {new_version}"))
+                    check = check and False
+            else:
+                if new_version == pkg_version:
+                    print(bcolors.ok(f"[ OK ] {folder} {pkg_version}"))
+                    check = check and True
+                else:
+                    print(bcolors.fail(f"[ERROR] {folder} {pkg_version} != {new_version}"))
+                    check = check and False
     return check
 
 
