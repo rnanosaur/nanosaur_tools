@@ -78,7 +78,7 @@ def check_packages(new_version, path):
             # Check version
             if new_version.is_prerelease:
                 if new_version.base_version == pkg_version.base_version:
-                    print(bcolors.warning(f"[ OK ] {folder} {pkg_version}"))
+                    print(bcolors.warning(f"[ OK ] (Developer version {new_version}) {folder} {pkg_version}"))
                     check = check and True
                 else:
                     print(bcolors.fail(f"[ERROR] {folder} {pkg_version} != {new_version}"))
