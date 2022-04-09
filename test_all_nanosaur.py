@@ -26,13 +26,17 @@
 
 import os
 from sys import exit
-
+import argparse
+from packaging.version import parse
 from CI.version_tag_check import check_packages
 
 
 def main():
-    
-    version="2.0.0-dev0"
+    parser = argparse.ArgumentParser(description='version build check for all packages')
+    parser.add_argument("version")
+    args = parser.parse_args()
+
+    version=parse(args.version)
     path = "../"
     folders = []
     # Get all ros workspaces
