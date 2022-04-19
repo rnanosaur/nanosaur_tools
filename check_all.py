@@ -28,8 +28,8 @@ import os
 from sys import exit
 import argparse
 from packaging.version import parse
-from version_tag_check import check_packages
-from check_nanosaur_script import check_nanosaur_script
+from CI import check_packages
+from CI import check_script
 
 
 def main():
@@ -38,7 +38,7 @@ def main():
     args = parser.parse_args()
 
     version=parse(args.version)
-    path = "../../"
+    path = "../"
     folders = []
     # Get all ros workspaces
     for folder in os.listdir(path):
@@ -56,7 +56,7 @@ def main():
         check_packages(version, folder)
     
     # Nanosaur script version
-    check_nanosaur_script(version, path)
+    check_script(version, path)
 
 if __name__ == '__main__':
     main()

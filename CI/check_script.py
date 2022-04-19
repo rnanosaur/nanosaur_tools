@@ -25,42 +25,26 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import argparse
 import subprocess
 from packaging.version import parse
 
-from colors import bcolors
+from .colors import bcolors
 
-def check_nanosaur_script(version, path):
+def check_script(version, path):
     # Nanosaur script version
     path_nanosaur_script=os.path.join(path, "nanosaur_core", "src", "nanosaur", "nanosaur", "scripts", "nanosaur")
+    if not os.path.isfile(path_nanosaur_script):
+        print(bcolors.fail(f"[ERROR] wrong path nanosaur script"))
+        return False
     print(f"Check nanosaur script: {os.path.abspath(path_nanosaur_script)}")
     nanosaur_version = subprocess.run([path_nanosaur_script, "-v"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     nanosaur_version.stdout.decode("utf-8")
     script_version=parse(nanosaur_version.stdout.decode("utf-8"))
-    print(script_version)
     
     if version == script_version:
         print(bcolors.ok(f"[ OK ] nanosaur {script_version}"))
         return True
     else:
         print(bcolors.fail(f"[ERROR] nanosaur {script_version} != {version}"))
-        return False  
-
-def main():
-    parser = argparse.ArgumentParser(description='version build check for all packages')
-    parser.add_argument("version")
-    args = parser.parse_args()
-
-    new_version = parse(args.version)
-    # Get all folders in repo
-    path = "..7"
-    # Check nanosaur script
-    check = check_nanosaur_script(new_version, path)
-    # Exit status
-    exit(0 if check else 1)
-
-if __name__ == '__main__':
-    main()
+        return False
 # EOF
-
