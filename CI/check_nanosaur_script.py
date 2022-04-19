@@ -25,52 +25,27 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-from sys import exit
 import argparse
-from xml.etree.ElementTree import ElementTree
+import subprocess
 from packaging.version import parse
 
 from colors import bcolors
 
-
-def check_packages(new_version, path):
-    check = True
-    # Get all folders in repo
-    folders = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name)) if not name.startswith('.')]
-    # Check if is a ROS package
-    for folder in folders:
-        package_manifest = os.path.join(path, folder, 'package.xml')
-        if os.path.exists(package_manifest):
-            try:
-                root = ElementTree(None, package_manifest)
-                version = root.findtext('version')
-            except Exception:
-                pass
-            
-            # https://packaging.pypa.io/en/latest/version.html#packaging.version.parse
-            pkg_version = parse(version)
-            
-            if pkg_version.is_prerelease:
-                print(bcolors.fail(f"[ERROR] Can't be a dev version {new_version}"))
-                check = check and False
-                continue
-            # Check version
-            if new_version.is_prerelease:
-                if new_version.base_version == pkg_version.base_version:
-                    print(bcolors.warning(f"[ OK ] (Developer version {new_version}) {folder} {pkg_version}"))
-                    check = check and True
-                else:
-                    print(bcolors.fail(f"[ERROR] {folder} {pkg_version} != {new_version}"))
-                    check = check and False
-            else:
-                if new_version == pkg_version:
-                    print(bcolors.ok(f"[ OK ] {folder} {pkg_version}"))
-                    check = check and True
-                else:
-                    print(bcolors.fail(f"[ERROR] {folder} {pkg_version} != {new_version}"))
-                    check = check and False
-    return check
-
+def check_nanosaur_script(version, path):
+    # Nanosaur script version
+    path_nanosaur_script=os.path.join(path, "nanosaur_core", "src", "nanosaur", "nanosaur", "scripts", "nanosaur")
+    print(f"Check nanosaur script: {os.path.abspath(path_nanosaur_script)}")
+    nanosaur_version = subprocess.run([path_nanosaur_script, "-v"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    nanosaur_version.stdout.decode("utf-8")
+    script_version=parse(nanosaur_version.stdout.decode("utf-8"))
+    print(script_version)
+    
+    if version == script_version:
+        print(bcolors.ok(f"[ OK ] nanosaur {script_version}"))
+        return True
+    else:
+        print(bcolors.fail(f"[ERROR] nanosaur {script_version} != {version}"))
+        return False  
 
 def main():
     parser = argparse.ArgumentParser(description='version build check for all packages')
@@ -79,13 +54,13 @@ def main():
 
     new_version = parse(args.version)
     # Get all folders in repo
-    path = "."
-    # Check all folders
-    check = check_packages(new_version, path)
+    path = "..7"
+    # Check nanosaur script
+    check = check_nanosaur_script(new_version, path)
     # Exit status
     exit(0 if check else 1)
-
 
 if __name__ == '__main__':
     main()
 # EOF
+

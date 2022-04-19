@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # Copyright (C) 2022, Raffaello Bonghi <raffaello@rnext.it>
 # All rights reserved
 # Redistribution and use in source and binary forms, with or without
@@ -24,37 +23,25 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os
-from sys import exit
-import argparse
-from packaging.version import parse
-from CI.version_tag_check import check_packages
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
-def main():
-    parser = argparse.ArgumentParser(description='version build check for all packages')
-    parser.add_argument("version")
-    args = parser.parse_args()
+    @staticmethod
+    def ok(message="OK"):
+        return bcolors.OKGREEN + message + bcolors.ENDC
 
-    version=parse(args.version)
-    path = "../"
-    folders = []
-    # Get all ros workspaces
-    for folder in os.listdir(path):
-        if folder.startswith('nanosaur'):
-            # Check if has a src folder
-            new_path = os.path.join(path, folder, "src")
-            if os.path.isdir(new_path):
-                # Check all nanosaur repositories
-                for name in os.listdir(new_path):
-                    if name.startswith('nanosaur'):
-                        folders +=[os.path.join(path, folder, "src", name)]
-    
-    for folder in folders:
-        print(f"Folder: {folder}")
-        check_packages(version, folder)
-        
+    @staticmethod
+    def warning(message="WARN"):
+        return bcolors.WARNING + message + bcolors.ENDC
 
-if __name__ == '__main__':
-    main()
-# EOF
+    @staticmethod
+    def fail(message="ERR"):
+        return bcolors.FAIL + message + bcolors.ENDC
