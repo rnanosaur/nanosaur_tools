@@ -56,7 +56,7 @@ def main():
         check_packages(version, folder)
     
     # Nanosaur script version
-    check_script(version, path)
+    check_script(version, os.path.join(path, "nanosaur_core", "src", "nanosaur"))
 
 if __name__ == '__main__':
     main()

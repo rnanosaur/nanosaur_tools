@@ -32,7 +32,7 @@ from .colors import bcolors
 
 def check_script(version, path):
     # Nanosaur script version
-    path_nanosaur_script=os.path.join(path, "nanosaur_core", "src", "nanosaur", "nanosaur", "scripts", "nanosaur")
+    path_nanosaur_script=os.path.join(path, "nanosaur", "scripts", "nanosaur")
     if not os.path.isfile(path_nanosaur_script):
         print(bcolors.fail(f"[ERROR] wrong path nanosaur script"))
         return False
