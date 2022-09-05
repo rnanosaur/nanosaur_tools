@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # Copyright (C) 2022, Raffaello Bonghi <raffaello@rnext.it>
 # All rights reserved
 # Redistribution and use in source and binary forms, with or without
@@ -23,5 +24,41 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .nanosaur_packages import check_packages, upgrade_packages
-from .nanosaur_script import check_script, upgrade_script
+import os
+from sys import exit
+import argparse
+from packaging.version import parse
+from CI import upgrade_packages
+from CI import upgrade_script
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Upgrade for all packages to release a new version')
+    parser.add_argument("version")
+    args = parser.parse_args()
+
+    version=parse(args.version)
+    path = "../"
+    folders = []
+    # Get all ros workspaces
+    for folder in os.listdir(path):
+        if folder.startswith('nanosaur'):
+            # Check if has a src folder
+            new_path = os.path.join(path, folder, "src")
+            if os.path.isdir(new_path):
+                # Check all nanosaur repositories
+                for name in os.listdir(new_path):
+                    if name.startswith('nanosaur'):
+                        folders +=[os.path.join(path, folder, "src", name)]
+    
+    print(folders)
+    #for folder in folders:
+    #    print(f"Folder: {os.path.abspath(folder)}")
+    #    upgrade_packages(version, folder)
+    
+    # Nanosaur script version
+    #upgrade_script(version, os.path.join(path, "nanosaur_core", "src", "nanosaur"))
+
+if __name__ == '__main__':
+    main()
+# EOF

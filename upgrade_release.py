@@ -25,7 +25,7 @@
 
 import argparse
 from packaging.version import parse
-from CI import update_packages
+from CI import upgrade_packages
 
 def main():
     parser = argparse.ArgumentParser(description='Upgrade all packages with the new version')
@@ -35,7 +35,7 @@ def main():
 
     new_version = parse(args.version)
     # Check all folders
-    check = update_packages(new_version, args.path)
+    check = upgrade_packages(new_version, args.path)
 
     
 if __name__ == '__main__':

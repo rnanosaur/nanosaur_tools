@@ -26,6 +26,7 @@
 
 import os
 from xml.etree.ElementTree import ElementTree
+import lxml.etree as ET
 from packaging.version import parse
 
 from .colors import bcolors
@@ -68,4 +69,30 @@ def check_packages(new_version, path):
                     print(bcolors.fail(f"[ERROR] {folder} {pkg_version} != {new_version}"))
                     check = check and False
     return check
+
+def upgrade_packages(new_version, path):
+    # Get all folders in repo
+    folders = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name)) if not name.startswith('.')]
+    # Check if is a ROS package
+    parser = ET.XMLParser(remove_comments=False)
+    for folder in folders:
+        package_manifest = os.path.join(path, folder, 'package.xml')
+        if os.path.exists(package_manifest):
+            try:
+                tree = ET.parse(package_manifest, parser=parser)
+                version_tag = tree.find('version')
+                version_old = version_tag.text
+                # Update version
+                version_tag.text = str(new_version)
+                # Check new version
+                version = tree.find('version').text
+            except Exception as e:
+                print(e)
+                pass
+            
+            # Version update check
+            print(f"{folder} - {version_old} > {version}")
+            # Write the file with the new version
+            with open(package_manifest, 'wb') as doc:
+                doc.write(ET.tostring(tree, pretty_print=True, xml_declaration=True, encoding='UTF-8'))
 # EOF

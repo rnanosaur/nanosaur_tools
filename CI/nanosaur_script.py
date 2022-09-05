@@ -27,6 +27,8 @@
 import os
 import subprocess
 from packaging.version import parse
+import fileinput
+import sys
 
 from .colors import bcolors
 
@@ -47,4 +49,17 @@ def check_script(version, path):
     else:
         print(bcolors.fail(f"[ERROR] nanosaur {script_version} != {version}"))
         return False
+
+def upgrade_script(version, path):
+    # Nanosaur script version
+    path_nanosaur_script=os.path.join(path, "nanosaur", "scripts", "nanosaur")
+    if not os.path.isfile(path_nanosaur_script):
+        print(bcolors.fail(f"[ERROR] wrong path nanosaur script"))
+        return False
+
+    # Find and replace version
+    for line in fileinput.input(path_nanosaur_script, inplace=1):
+        if line.startswith("NANOSAUR_VERSION="):
+            line = line.replace(line, f"NANOSAUR_VERSION='{version}'\n")
+        sys.stdout.write(line)
 # EOF
