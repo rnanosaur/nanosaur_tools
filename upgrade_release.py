@@ -25,21 +25,19 @@
 
 import argparse
 from packaging.version import parse
-from CI import check_packages
+from CI import update_packages
 
 def main():
-    parser = argparse.ArgumentParser(description='version build check for all packages')
+    parser = argparse.ArgumentParser(description='Upgrade all packages with the new version')
     parser.add_argument("version")
     parser.add_argument('-p', '--path', nargs='?', default=".", type=str, help='path where is located nanosaur folder')
     args = parser.parse_args()
 
     new_version = parse(args.version)
     # Check all folders
-    check = check_packages(new_version, args.path)
-    # Exit status
-    exit(0 if check else 1)
+    check = update_packages(new_version, args.path)
 
-
+    
 if __name__ == '__main__':
     main()
 # EOF

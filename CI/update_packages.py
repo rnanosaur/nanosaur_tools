@@ -23,23 +23,36 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import argparse
+import os
+import sys
+import lxml.etree as ET
 from packaging.version import parse
-from CI import check_packages
 
-def main():
-    parser = argparse.ArgumentParser(description='version build check for all packages')
-    parser.add_argument("version")
-    parser.add_argument('-p', '--path', nargs='?', default=".", type=str, help='path where is located nanosaur folder')
-    args = parser.parse_args()
+from .colors import bcolors
 
-    new_version = parse(args.version)
-    # Check all folders
-    check = check_packages(new_version, args.path)
-    # Exit status
-    exit(0 if check else 1)
-
-
-if __name__ == '__main__':
-    main()
+def update_packages(new_version, path):
+    # Get all folders in repo
+    folders = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name)) if not name.startswith('.')]
+    # Check if is a ROS package
+    parser = ET.XMLParser(remove_comments=False)
+    for folder in folders:
+        package_manifest = os.path.join(path, folder, 'package.xml')
+        if os.path.exists(package_manifest):
+            try:
+                tree = ET.parse(package_manifest, parser=parser)
+                version_tag = tree.find('version')
+                version_old = version_tag.text
+                # Update version
+                version_tag.text = str(new_version)
+                # Check new version
+                version = tree.find('version').text
+            except Exception as e:
+                print(e)
+                pass
+            
+            # Version update check
+            print(f"{folder} - {version_old} > {version}")
+            # Write the file with the new version
+            with open(package_manifest, 'wb') as doc:
+                doc.write(ET.tostring(tree, pretty_print=True, xml_declaration=True, encoding=None))
 # EOF

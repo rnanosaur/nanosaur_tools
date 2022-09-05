@@ -30,13 +30,12 @@ from CI import check_script
 def main():
     parser = argparse.ArgumentParser(description='version build check for all packages')
     parser.add_argument("version")
+    parser.add_argument('-p', '--path', nargs='?', default=".", type=str, help='path where is located nanosaur folder')
     args = parser.parse_args()
 
     new_version = parse(args.version)
-    # Get all folders in repo
-    path = "."
     # Check nanosaur script
-    check = check_script(new_version, path)
+    check = check_script(new_version, args.path)
     # Exit status
     exit(0 if check else 1)
 

@@ -25,3 +25,4 @@
 
 from .check_packages import check_packages
 from .check_script import check_script
+from .update_packages import update_packages
