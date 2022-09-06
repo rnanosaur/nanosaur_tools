@@ -171,7 +171,7 @@ main()
     python upgrade_release.py $VERSION -p $MAIN_PATH/nanosaur
     # nanoasur_perception
     MAIN_PATH="$HOME/nanosaur_perception/src"
-    #python upgrade_release.py $VERSION -p $MAIN_PATH/nanosaur_perception
+    python upgrade_release.py $VERSION -p $MAIN_PATH/nanosaur_perception
 
     # Check version
     output_check=0
