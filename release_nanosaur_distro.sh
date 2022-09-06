@@ -51,25 +51,36 @@ check_repo()
     local FOLDER=$2
     local cfolder=$(pwd)
     local output_check=0
-    echo "[$FOLDER] Check:"
+    echo "${blue}[$FOLDER]${reset}"
     # Check nanosaur repo
     cd $FOLDER
     git pull --quiet
     # Check if there are uncommit
     if git diff-index --quiet HEAD --; then
         # No changes
-        echo "$green[ OK ] git no changes$reset"
+        echo "${green}[ OK ] git no changes${reset}"
         output_check=$(($output_check | 0))
     else
         # Changes
-        echo "$red[ERROR] git changes$reset"
+        echo "${red}[ERROR] git changes${reset}"
         output_check=$(($output_check | 1))
     fi
     # Check if tag version exists
     if [ $(git tag -l "$VERSION") ]; then
+        echo "${red}[ERROR] git $VERSION already exist ${reset}"
         output_check=$(($output_check | 1))
     else
+        echo "${green}[ OK ] git $VERSION doesn't exist ${reset}"
         output_check=$(($output_check | 0))
+    fi
+    # Check branch
+    branch=$(git branch | sed -n -e 's/^\* \(.*\)/\1/p')
+    if [ $branch = "master" ] || [ $branch = "main" ] ; then
+        echo "${green}[ OK ] git right branch:$branch ${reset}"
+        output_check=$(($output_check | 0))
+    else
+        echo "${red}[ERROR] git wrong branch:$branch ${reset}"
+        output_check=$(($output_check | 1))
     fi
     # Return main folder
     cd $cfolder
@@ -81,11 +92,12 @@ check_repo()
 
 main()
 {
+    local SILENT=false
     local VERSION="2.1.0"
-    source .venv/bin/activate
 
+    ###################################à
+    
     local output_check=0
-
     # Nanosaur Core repositories
     MAIN_PATH="$HOME/nanosaur_core/src"
     # nanosaur_robot
@@ -94,8 +106,6 @@ main()
     # nanosaur
     check_repo $VERSION $MAIN_PATH/nanosaur
     output_check=$(($output_check | $?))
-    python check_nanosaur_script.py $VERSION -p $MAIN_PATH/nanosaur
-    output_check=$(($output_check | $?))
     # nanosaur_perception
     MAIN_PATH="$HOME/nanosaur_perception/src"
     check_repo $VERSION $MAIN_PATH/nanosaur_perception
@@ -103,8 +113,34 @@ main()
 
     echo "----------------------"
     if [ $output_check -gt 0 ]; then
-        echo "I cannot upgrade the nanosaur distro"
+        echo "${red}[ERROR] I cannot upgrade the nanosaur distro${reset}"
+        echo "${red}        Merge to master/main and push all uncommitted changes${reset}"
+        exit 1
     fi
+
+    while ! $SILENT; do
+        read -p "Do you wish to release nanosaur to version $VERSION? [Y/n] " yn
+            case $yn in
+                [Yy]* ) # Break and install jetson_stats 
+                        break;;
+                [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
+    # Load virtual enviroment
+    source .venv/bin/activate
+
+    # Check version
+    output_check=0
+
+    python check_nanosaur_script.py $VERSION -p $MAIN_PATH/nanosaur
+    output_check=$(($output_check | $?))
+    python check_tag_version.py $VERSION -p $MAIN_PATH/nanosaur
+    output_check=$(($output_check | $?))
+
+
+    # Upgrade all repos
 }
 
 
