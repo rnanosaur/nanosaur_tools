@@ -47,6 +47,7 @@ git_push_updates()
     # tag version
     git tag -a $VERSION -m $MESSAGE
     # git push new version
+    git push
     git push --tags
     # Return main folder
     cd $cfolder
