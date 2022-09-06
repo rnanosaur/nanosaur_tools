@@ -37,7 +37,7 @@ git_push_updates()
 {
     local FOLDER=$1
     local VERSION=$2
-    local MESSAGE=$3
+    local MESSAGE=${@:3}
     local cfolder=$(pwd)
     echo "${blue}[$FOLDER]${reset}"
     # Jump to repo
