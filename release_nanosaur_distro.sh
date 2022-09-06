@@ -33,26 +33,40 @@ blue=`tput setaf 4`
 reset=`tput sgr0`
 
 
-check_status()
+git_push_updates()
 {
-    local VERSION=$1
-    local FOLDER=$2
-    # check all ROS version
-    python check_tag_version.py $VERSION -p $FOLDER
-    local output_check=$?
-    # echo "output $output_check"
-    return $output_check
+    local FOLDER=$1
+    local VERSION=$2
+    local MESSAGE=$3
+    local cfolder=$(pwd)
+    echo "${blue}[$FOLDER]${reset}"
+    # Jump to repo
+    cd $FOLDER
+    # Commit version update
+    git commit -am $MESSAGE
+    # tag version
+    git tag -a $VERSION -m $MESSAGE
+    # git push new version
+    git push --tags
+    # Return main folder
+    cd $cfolder
 }
 
 
 check_repo()
 {
-    local VERSION=$1
-    local FOLDER=$2
+    local FOLDER=$1
+    local VERSION=$2
     local cfolder=$(pwd)
     local output_check=0
     echo "${blue}[$FOLDER]${reset}"
-    # Check nanosaur repo
+
+    # Load nanosaur configuration file
+    if [ ! -d $FOLDER ] ; then
+        echo "${red}[ERROR] repository $(basename ${FOLDER}) doesn't exist!${reset}"
+        return 1
+    fi
+    # Jump to repo
     cd $FOLDER
     git pull --quiet
     # Check if there are uncommit
@@ -93,22 +107,35 @@ check_repo()
 main()
 {
     local SILENT=false
-    local VERSION="2.1.0"
 
-    ###################################à
-    
+    local name=$(basename ${0})
+    if [ $# -lt 2 ] ; then
+        echo "${red}[ERROR] Please write version and message tag${reset}"
+        echo "${red}$name [VERSION] [MESSAGE]${reset}"
+        exit 1
+    fi
+
+    local VERSION=$1
+    local MESSAGE=${@:2}
+
+    echo "${bold}Version:${reset} $VERSION"
+    echo "${bold}Message:${reset} $MESSAGE"
+    echo "----------------------"
+
+    ####################################
+
     local output_check=0
     # Nanosaur Core repositories
     MAIN_PATH="$HOME/nanosaur_core/src"
     # nanosaur_robot
-    check_repo $VERSION $MAIN_PATH/nanosaur_robot
+    check_repo $MAIN_PATH/nanosaur_robot $VERSION
     output_check=$(($output_check | $?))
     # nanosaur
-    check_repo $VERSION $MAIN_PATH/nanosaur
+    check_repo $MAIN_PATH/nanosaur $VERSION
     output_check=$(($output_check | $?))
     # nanosaur_perception
     MAIN_PATH="$HOME/nanosaur_perception/src"
-    check_repo $VERSION $MAIN_PATH/nanosaur_perception
+    check_repo $MAIN_PATH/nanosaur_perception $VERSION
     output_check=$(($output_check | $?))
 
     echo "----------------------"
@@ -118,8 +145,12 @@ main()
         exit 1
     fi
 
+    echo "${bold}Version:${reset} $VERSION"
+    echo "${bold}Message:${reset} $MESSAGE"
+    echo "----------------------"
+
     while ! $SILENT; do
-        read -p "Do you wish to release nanosaur to version $VERSION? [Y/n] " yn
+        read -p "Do you wish to release nanosaur to version ${bold}$VERSION${reset}? [Y/n] " yn
             case $yn in
                 [Yy]* ) # Break and install jetson_stats 
                         break;;
@@ -131,16 +162,32 @@ main()
     # Load virtual enviroment
     source .venv/bin/activate
 
+    # Upgrade all repos
+    MAIN_PATH="$HOME/nanosaur_core/src"
+    # nanosaur_robot
+    python upgrade_release.py $VERSION -p $MAIN_PATH/nanosaur_robot
+    # nanosaur repo
+    python upgrade_nanosaur_script.py $VERSION -p $MAIN_PATH/nanosaur
+    python upgrade_release.py $VERSION -p $MAIN_PATH/nanosaur
+    # nanoasur_perception
+    MAIN_PATH="$HOME/nanosaur_perception/src"
+    #python upgrade_release.py $VERSION -p $MAIN_PATH/nanosaur_perception
+
     # Check version
     output_check=0
-
+    MAIN_PATH="$HOME/nanosaur_core/src"
+    # nanosaur_robot
+    python check_tag_version.py $VERSION -p $MAIN_PATH/nanosaur_robot
+    output_check=$(($output_check | $?))
+    # nanosaur repo
     python check_nanosaur_script.py $VERSION -p $MAIN_PATH/nanosaur
     output_check=$(($output_check | $?))
     python check_tag_version.py $VERSION -p $MAIN_PATH/nanosaur
     output_check=$(($output_check | $?))
-
-
-    # Upgrade all repos
+    # nanosaur_perception
+    MAIN_PATH="$HOME/nanosaur_perception/src"
+    python check_tag_version.py $VERSION -p $MAIN_PATH/nanosaur_perception
+    output_check=$(($output_check | $?))
 }
 
 
