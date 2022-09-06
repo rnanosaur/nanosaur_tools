@@ -173,6 +173,13 @@ main()
     MAIN_PATH="$HOME/nanosaur_perception/src"
     python upgrade_release.py $VERSION -p $MAIN_PATH/nanosaur_perception
 
+    # Push changes and release tag
+    MAIN_PATH="$HOME/nanosaur_core/src"
+    git_push_updates $MAIN_PATH/nanosaur_robot $VERSION $MESSAGE
+    git_push_updates $MAIN_PATH/nanosaur $VERSION $MESSAGE
+    MAIN_PATH="$HOME/nanosaur_perception/src"
+    git_push_updates $MAIN_PATH/nanosaur_perception $VERSION $MESSAGE
+
     # Check version
     output_check=0
     MAIN_PATH="$HOME/nanosaur_core/src"
