@@ -25,32 +25,89 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+bold=`tput bold`
+red=`tput setaf 1`
+green=`tput setaf 2`
+yellow=`tput setaf 3`
+blue=`tput setaf 4`
+reset=`tput sgr0`
+
+
+check_status()
+{
+    local VERSION=$1
+    local FOLDER=$2
+    # check all ROS version
+    python check_tag_version.py $VERSION -p $FOLDER
+    local output_check=$?
+    # echo "output $output_check"
+    return $output_check
+}
+
+
 check_repo()
 {
+    local VERSION=$1
+    local FOLDER=$2
+    local cfolder=$(pwd)
+    local output_check=0
+    echo "[$FOLDER] Check:"
     # Check nanosaur repo
-
-    cd $1
-
+    cd $FOLDER
+    git pull --quiet
+    # Check if there are uncommit
     if git diff-index --quiet HEAD --; then
         # No changes
-        echo "[$1] No changes"
-        return 0
+        echo "$green[ OK ] git no changes$reset"
+        output_check=$(($output_check | 0))
     else
         # Changes
-        echo "[$1] Changes"
-        return 1
+        echo "$red[ERROR] git changes$reset"
+        output_check=$(($output_check | 1))
+    fi
+    # Check if tag version exists
+    if [ $(git tag -l "$VERSION") ]; then
+        output_check=$(($output_check | 1))
+    else
+        output_check=$(($output_check | 0))
+    fi
+    # Return main folder
+    cd $cfolder
+
+    # echo "output $output_check"
+    return $output_check
+}
+
+
+main()
+{
+    local VERSION="2.1.0"
+    source .venv/bin/activate
+
+    local output_check=0
+
+    # Nanosaur Core repositories
+    MAIN_PATH="$HOME/nanosaur_core/src"
+    # nanosaur_robot
+    check_repo $VERSION $MAIN_PATH/nanosaur_robot
+    output_check=$(($output_check | $?))
+    # nanosaur
+    check_repo $VERSION $MAIN_PATH/nanosaur
+    output_check=$(($output_check | $?))
+    python check_nanosaur_script.py $VERSION -p $MAIN_PATH/nanosaur
+    output_check=$(($output_check | $?))
+    # nanosaur_perception
+    MAIN_PATH="$HOME/nanosaur_perception/src"
+    check_repo $VERSION $MAIN_PATH/nanosaur_perception
+    output_check=$(($output_check | $?))
+
+    echo "----------------------"
+    if [ $output_check -gt 0 ]; then
+        echo "I cannot upgrade the nanosaur distro"
     fi
 }
 
-# Nanosaur Core repositories
 
-MAIN_PATH="$HOME/nanosaur_core/src"
-
-check_repo $MAIN_PATH/nanosaur
-check_repo $MAIN_PATH/nanosaur_robot
-
-# Nanosaur Perception repositories
-
-MAIN_PATH="$HOME/nanosaur_perception/src"
-
-check_repo $MAIN_PATH/nanosaur_perception
+main $@
+exit 0
+# EOF

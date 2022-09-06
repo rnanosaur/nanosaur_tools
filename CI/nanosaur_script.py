@@ -38,16 +38,16 @@ def check_script(version, path):
     if not os.path.isfile(path_nanosaur_script):
         print(bcolors.fail(f"[ERROR] wrong path nanosaur script"))
         return False
-    print(f"Check nanosaur script: {os.path.abspath(path_nanosaur_script)}")
+    # print(f"Check nanosaur script: {os.path.abspath(path_nanosaur_script)}")
     nanosaur_version = subprocess.run([path_nanosaur_script, "-v"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     nanosaur_version.stdout.decode("utf-8")
     script_version=parse(nanosaur_version.stdout.decode("utf-8"))
     
     if version == script_version:
-        print(bcolors.ok(f"[ OK ] nanosaur {script_version}"))
+        print(bcolors.ok(f"[ OK ] nanosaur_script {script_version}"))
         return True
     else:
-        print(bcolors.fail(f"[ERROR] nanosaur {script_version} != {version}"))
+        print(bcolors.fail(f"[ERROR] nanosaur_script {script_version} != {version}"))
         return False
 
 def upgrade_script(version, path):
